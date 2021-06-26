@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div name="titulo">
+        <h1>Esta es la informacion de posgrest</h1>
+    </div>
+    <div name="pagina">
+        <div>
+            <h3>Base de datos</h3>
+            <p>
+                Crear una base de datos
+                
+                create database [nombre de la DB];
+
+                renombrar base de datos
+                alter database [nombre de la DB] rename to [nuevo nombre de la DB];
+
+                eliminar base de datos
+                drop database [nombre de la DB];
+                *no se puede eliminar mientras la DB este activa
+
+                ver todas las db
+                select * from pg_database
+
+                auditar
+                select * from pg_authid
+            </p>
+            <h3>Tablas</h3>
+            <p>
+                crear tabla
+                    create table [nombre tabla](columna1 tipo, columna2 tipo, columna3 tipo, ...);
+
+                    renombrar tabla
+                        alter table [nombre tabla] rename to [nuevo nombre tabla];
+
+                    eliminar tabla 
+                        drop table [nombre tabla];
+
+                    vaciar tabla
+                        truncate table [nombre tabla];
+
+                    crear tabla particionada
+                        create table [nombre tabla](columna1 tipo, columna2 tipo, columna3 tipo, ...) partition by range ([nombre columna desde la que se hace la particion]);
+                        *la columna a la que se va a particionar tiene que ser primary key
+
+                    crear la particion
+                        create table [nombre particion] partition of [nombre tabla] for values from ([valor1]) to ([valor2]);  
+
+                    duplicar tabla
+                        select * into [nombre de copia] from [tabla original];
+
+                    duplicar estructura de tabla (tabla sin datos)
+                        create table [nombre tabla] as select * from [tabla original] where 1!=1;
+
+                    copiar algunos registros de una tabla
+                        select * into [nombre de copia] from [tabla original] where [condicion];
+                        select [columna1, ...] into [nombre de copia] from [tabla original] where [condicion];
+
+                    exportar tabla
+                    copy [nombre tabla] to '[ruta]' delimiter '[delimitador]';
+                    *el delimitador es con que caracter se van a separar las tablas
+
+                    importar tabla
+                    copy [nombre de tabla] from '[ruta]' delimiter '[delimitador]';
+
+                    tabla que hereda de otra tabla
+                        create table [nombre tabla] (check([condicion])) inherits ([nombre tabla padre]);
+            </p>
+            <h3>Columnas</h3>
+            <p>
+                añadir columna
+                    alter table [nombre tabla] add column [nombre columna] [tipo dato];
+                
+                cambiar nombre de una columna
+                    alter table [nombre tabla] rename column [nombre columna] to [nuevo nombre columna];
+                
+                cambiar tipo de una columna
+                    alter table [nombre tabla] alter column [nombre columna] type [nuevo tipo];
+                
+                añadir/quitar restriccion not null de columna
+                    alter table [nombre tabla] alter column [nombre columna] set not null;
+                    alter table [nombre tabla] alter column [nombre columna] drop not null;
+                
+                poner un valor por defecto en una columna
+                    alter table [nombre tabla] alter column [nombre columna] set default [valor];
+                
+                eliminar columna
+                    alter table [nombre tabla] drop column [nombre column];                
+            </p>
+            <h3>Constrain</h3>
+            <p>
+                primary key 
+                create table [nombre tabla](columna1 tipo primary key, columna2 tipo, columna3 tipo, ...);
+                    *crear tabla con una columna con primary key
+                alter table [nombre tabla] add primary key([nombre columna]);
+                    *convertir en primary key una columna de la tabla
+                alter table [nombre tabla] add constrain [nombre primary key] primary key([nombre columna]);
+                    *convertir en primary key una columna de la tabla
+                alter table [nombre tabla] add constrain [nombre primary key] primary key([nombre columna],[nombre columun]);
+                    *convertir en primary key compuesta una columna de la tabla	
+            
+                foreign key
+                    create table [nombre tabla](columna1 tipo references [tabla relacionada](columna relacionada), columna2 tipo, columna3 tipo, ...);
+                        *crear tabla con una columna con foreign key
+                    alter table [nombre tabla] add foreign key([nombre columna]) references [nombre tabla]([nombre columna relacionada]);
+                        *convertir en foreign key una columna de la tabla 
+                    alter table [nombre tabla] add constrain [nombre foreign key] foreign key([nombre columna]) references [nombre tabla]([nombre columna relacionada]);
+                        *convertir en foreign key una columna de la tabla 
+                Unike
+                    alter table [nombre tabla] add constrain [nombre unique] unique ([nombre columna]);	
+                    *hacer que un valor no se pueda repetir
+                
+                check
+                    alter table [nombre tabla] add constrain [nombre check] CHECK [condicion]
+                    NOT VALID	
+                    -verifica que se cumpla la condicion                
+            </p>
+            <h3>Informacion</h3>
+            <p>
+            insertar informacion
+                insert into [nombre tabla] (columna1, columna2, columna3, ...) values (valor1, valor2, valor3, ...);
+                insert into [nombre tabla] (columna1, columna2, columna3, ...) values (valor1, valor2, valor3, ...),(valor1, valor2, valor3, ...), ...;
+            
+            Mostrar informacion
+                select [columna a mostrar] from [nombre tabla];
+                select [columna1, columna2, ...] from [nombre tabla];
+                select * from [nombre tabla];
+                select [columna a mostrar] as [nombre para renombrar columna] from [nombre tabla];
+                *se usa para mostrar otro nombre en la columna sin cambiar los datos en la db
+            
+            mostrar informacion limitada
+                select [columna a mostrar] from [nombre tabla] limit [cantidad];
+                *muestra la cantidad de datos sleccionados
+                select [columna a mostrar] from [nombre tabla] limit [cantidad] of set [posicion];
+                *muestra la cantidad de datos desde la posicion mencionada
+            
+            mostrar datos en when consultas
+                select [columna1,columna2], case when [nombre columna] [condicion] when '[titulo cuando se cumple la condicion]' else '[cuando no se cumple la condicion]' end from [nombre tabla];
+            
+            modificar informacion
+                update [nombre tabla] set [nombre columna]=[valor];
+                update [nombre tabla] set [nombre columna]=[valor],[nombre columna]=[valor];
+            
+            modificar con condiciones
+                update [nombre tabla] set [nombre columna]=[valor] where [condicion];
+                update [nombre tabla] set [nombre columna]=[valor], [nombre columna]=[valor] where [condicion];
+            
+            busqueda de caracteres
+                select [columna1, columna2, ...] from [nombre tabla] where [nombre columna] like '%[caracter]%';
+                    *retorna los datos de la columna que contengan el caracter 
+                select [columna1, columna2, ...] from [nombre tabla] where [nombre columna] like '[caracter]%';
+                    *retorna los datos de la columna que inicien con el caracter
+                select [columna1, columna2, ...] from [nombre tabla] where [nombre columna] like '%[caracter]';
+                    *retorna los datos de la columna que finalicen con el caracter
+                select [columna1, columna2, ...] from [nombre tabla] where [nombre columna] like '_[caracter]%';
+                    *retorna los datos de la columna  que en la segunda posicion tengan el caracter
+                select [columna1, columna2, ...] from [nombre tabla] where [nombre columna] like '%[caracter]_';
+                    *retorna los datos de la columna que en la penultima posicion tengan contengan el caracter
+            
+            Eliminar informacion
+                delete from [nombre tabla] where [condicion];
+            
+            Busqueda de todos los objetos
+                select * from pg_class;
+            
+            Busqueda de todos las tablas
+                select * from pg_table;                
+            </p>
+            <h3>condiciones</h3>
+            <p>
+                [nombre columna]=[valor];
+                [nombre columna]<[valor];
+                [nombre columna]>[valor];
+                [nombre columna]<=[valor];
+                [nombre columna]>=[valor];
+                [nombre columna]!=[valor];
+            
+            buscar con condiciones
+                select [columna1, columna2, ...] from [nombre tabla] where [condicion];
+                select * from [nombre tabla] where [condicion];
+                select [columna1, columna2, ...] from [nombre tabla] where is null;
+                *cuando se busca null
+                select [columna1, columna2, ...] from [nombre tabla] where is not null;
+                *cuando se busca es un no null             
+            </p>
+            <h3>Operadores logicos</h3>
+            <p>
+            and
+                select [columas a mostrar] from [nombre tabla] where [condicion 1] and [condicion 2];
+                select [columas a mostrar] from [nombre tabla] where [condicion 1] and [condicion 2] and ...;
+            
+            Or
+                select [columas a mostrar] from [nombre tabla] where [condicion 1] or [condicion 2] ;
+                select [columas a mostrar] from [nombre tabla] where [condicion 1] or [condicion 2] or ...;
+            
+            Between
+                select [columas a mostrar] from [nombre tabla] where [nombre columna] between '[dato]' and '[dato]';
+            
+            In
+                select [columas a mostrar] from [nombre tabla] where [nombre columna] in ([dato],[dato]);
+            
+            Not
+                select [columas a mostrar] from [nombre tabla] not where [condicion 1];                
+            </p>
+            <h3>Operadores de agrupacion</h3>
+            <p>
+            contar
+                select [nombre columna a agrupar],count(*) from [nombre tabla] group by [nombre columna a agrupar];
+            sumar
+                select [nombre columna a agrupar],sum([nombre de columna a operar]) from [nombre tabla] group by [nombre columna a agrupar];
+            
+            saber el mayor
+                select [nombre columna a agrupar],min([nombre de columna a operar]) from [nombre tabla] group by [nombre columna a agrupar];
+            
+            saber el minimo
+                select [nombre columna a agrupar],max([nombre de columna a operar]) from [nombre tabla] group by [nombre columna a agrupar];
+            
+            saber el promedio
+                select [nombre columna a agrupar],avg([nombre de columna a operar]) from [nombre tabla] group by [nombre columna a agrupar];
+            
+            * tambien se pueden usar filtrando datos con un where
+            
+                select select [nombre columna a agrupar],[operador]([nombre de columna a operar]) from [nombre tabla] where [condicion] group by [nombre columna a agrupar];
+            
+            condiciones de grupo	
+                select select [nombre columna a agrupar],[operador]([nombre de columna a operar]) from [nombre tabla] group by [nombre columna a agrupar] having operador(){operador logico}[valor];
+            
+            </p>
+            <h3>subconsultas</h3>
+            <p>
+
+            hacer subconsultas
+                select * from [nombre tabla] where [nombre columna]=( select [nombre columna] from [nombre tabla] where [condicion]);
+                select * from [nombre tabla] where [nombre columna]{operador logico}( select [nombre columna] from [nombre tabla] where [condicion]);
+                *solo funciona cuando hay solo un dato en la condicion
+                select * from [nombre tabla] where [nombre columna] in ( select [nombre columna] from [nombre tabla] where [condicion]);
+                select * from [nombre tabla] where [nombre columna] in ( select [nombre columna] from [nombre tabla] where [condicion]);
+                *el in permite mas de un dato
+                select * from [nombre tabla] where [nombre columna] not in ( select [nombre columna] from [nombre tabla] where [condicion]);                    
+            </p>
+            <h3>fechas</h3>
+            <p>
+            añadir campo fecha a una tabla 
+                alter table [nombre tabla] add column [nombre columna] date;
+                alter table [nombre tabla] add column [nombre columna] timestamp;
+
+            agregar fecha
+                update [nombre tabla] set [nombre columna]='[aaaa-mm-dd]' where [condicion]
+                update [nombre tabla] set [nombre columna]='[aaaa-mm-dd hh:mm:ss]' where [condicion]
+
+            añadir fecha actual
+                insert into [nombre tabla](... ,fecha, ...) values (..., currrent_date,...);
+                update [nombre tabla] set [nombre columna]= current_day;
+            ver la fecha 
+                select date([nombre columna]) from [nombre tabla];
+
+            ver año, mes, dia, hora, minute, secons
+                select date_part('year',[nombre columna]) from [nombre tabla];
+                select date_part('month',[nombre columna]) from [nombre tabla];
+                select date_part('day',[nombre columna]) from [nombre tabla];
+                select date_part('hour',[nombre columna]) from [nombre tabla];
+                select date_part('minute',[nombre columna]) from [nombre tabla];
+                select date_part('second',[nombre columna]) from [nombre tabla];
+
+            ver tiempo transcurrido desde la fecha puesta hasta la actual
+                select age([nombre columna]) from [nombre tabla];
+
+
+            uso de between con fechas
+                select * from [nombre tabla] where [nombre columna] between '[dato]' and '[dato]';
+                select * from [nombre tabla] where date_part('year',[nombre columna]) between '[dato]' and '[dato]';
+                .
+                .
+                .
+                select * from [nombre tabla] where date_part('second',[nombre columna]) between '[dato]' and '[dato]';
+            </p>
+            <h3>Esquemas</h3>
+            <p>
+                crear esquema
+                create schema [nombre esquema];
+            
+            crear tabla en un esquema
+                create table [nombre esquema].[nombre tabla]();
+                
+            ver informacion
+                select * from information_schema.tables;
+                select * from information_schema.tables where table_schema='[nombre esquema]';
+            
+            renombrar esquema 
+                ather [nombre esquema] rename to [nuevo nombre esquema];
+            
+            eliminar esquema
+                drop schema [nombre esquema];
+                *solo se puede eliminar si no contiene tablas
+            
+            eliminar esquema con todo lo que contiene
+                drop schema [nombre esquema] cascade;
+            
+            ver todos los esquemas
+                select * from pg_namespace; 
+            </p>
+            <h3>Table space</h3>
+            <p>
+                crear 
+                    create tablespace [nombre tablespace] location [ruta];
+
+                crear base de datos en un tablespace
+                    create database [nombre base de datos] tablespace [nombre tablespace];
+
+                mover DB
+                    alter database [nombre DB] set tablespace [nombre tablespace];
+
+                mover tabla
+                    alter table [nombre tabla] set tablespace [nombre tablespace];
+            </p>
+            <h3>Comandos</h3>
+            <p>
+                \dt
+                    lista todas las tablas
+                \d [nombre tabla]
+                    retorna una lista con la imformacion de la tabla
+                \l
+                    lista de las bases de datos
+                \c [nombre base de datos]
+                    conectarse a una base de datos
+
+                \du
+            </p>
+            <h3>Roles</h3>
+            <p>
+                Tipos de roles
+                    superuser	super usuario 
+                    createdb 	crear, editar y eliminar DB
+                    createrole 	crear roles
+
+                crear usuario
+                    create user [nombre usuario] with password '[contraseña]';
+                    *usuario basico sin poder editar, crear o eliminar DB ni usuarios.
+                    create user [nombre usuario] with password '[contraseña]' [rol];
+                    *usuario con un rol
+                    create user [nombre usuario] with password '[contraseña]' [rol] [rol];
+                    *usuario con multiples roles
+
+
+                cambiar nombre
+                    alter role [nombre usuario] rename to [nuevo nombre];
+
+                modificar
+                    alter role [nombre usuario] [rol];
+
+                cambiar clave 
+                    alter role [nombre usuario] password '[nueva contraseña]';
+
+
+                eliminar usuario
+
+                    drop user [nombre usuario];
+            </p>
+            <h3>Privilegios</h3>
+            <p>
+                Otorgar privilegios 
+                    grant all on [objeto] to [usuario];
+                    *todos los permisos
+                    grand [permiso] on [nombre tabla] to [usuario];
+                    grant [permiso] on sequence [nombre secuecnia] to [usuario];
+                    grand [permiso1],[permiso1] on [nombre tabla] to [usuario];
+                    
+                Privilegios especificos
+
+                    grand [permiso]([nombre columna]) on [nombre tabla] to [usuario];
+                    grand [permiso]([nombre columna],[nombre columna]), [permiso]([nombre columna],[nombre columna]) on [nombre tabla] to [usuario];
+
+                ademas sirve para otros objetos como secuencias
+                    
+
+                *permisos
+                    all, insert, delete, select, drop, update, truncate, references, trigger, ...
+                *objetos
+                    tabla, secuencia
+                    
+                    *los grand se suman y no se sobre escriben
+
+                Revocar permisos
+                    revoke all on [objeto] from [usuario];
+                    revoke [permiso] on [objeto] from [usuario];
+            </p>
+            <h3>Multitablas</h3>
+            <p>
+                Join (unir dos tablas)
+                    select * from [nombre tabla1] inner join [nombre tabla2] on [nombre tabla1].camporelacion = [nombre tabla1].camporelacion; 
+
+                left join
+                    select * from [nombre tabla1] left join [nombre tabla2] on [nombre tabla1].camporelacion = [nombre tabla1].camporelacion;
+                    *saca toda informacion de la tabla de la izquierda
+
+                right join
+                    select * from [nombre tabla1] right join [nombre tabla2] on [nombre tabla1].camporelacion = [nombre tabla1].camporelacion;
+                    *saca toda informacion de la tabla de la derecha
+
+                union 
+                    select [nombre columna],[nombre columna] from [nombre tabla1] union select [nombre columna],[nombre columna] from [nombre tabla2];-*
+
+                evitar que la informacion sea repetida
+                    select [nombre columna],[nombre columna] from [nombre tabla1] intersect select [nombre columna],[nombre columna] from [nombre tabla2];-*
+            </p>
+            <h3>Indice</h3>
+            <p>
+                ver indices
+                    select * from pg_indexes
+
+                crear
+                    create index [nombre indice] on [nombre tabla]([nombre columna]);
+
+                indice sobre campo calculo 
+                    create index [nombre indice] on [nombre tabla]([calculo]);
+
+                indice parcial
+                    create index [nombre indice] on [nombre tabla]([nombre columna]) where (condicion);
+
+                    *se usa para columnas a las cuales se realicen muchas conductas
+                    **no hay que abusar de los indices puesto que afecta al rendimiento 
+            </p>
+            <h3>pg</h3>
+            <p>
+                select * from pg_index;
+            </p>
+            <h3>Bloque anonimo</h3>
+            <p>
+                do $$
+                    declare
+                        [nombre varible] [tipo de variable];
+                    begin
+                        [Procesos]
+                    end;
+                $$
+
+                *Variables
+                    [nombre variable] := [valor a asignar];
+                    *definir una variable
+
+
+                *Procesos 
+                    
+                imprimir	
+                    raise notice '[imprime un texto]';
+                    raise notice '[imprime un texto %]',[imprime variable];
+                    raise notice '[imprime un texto % ... %]',[imprime variable],[imprime variable];
+                        * se imprime la variable donde se ponga el signo %
+                    raise notice '[imprime un texto % ... %]',[imprime variable],[imprime variable];	
+                    raise notice '[imprime un texto % ... %]',[imprime variable],[imprime variable];
+                        * se imprime la variable donde se ponga el signo %
+
+                asignar datos de una tabla a variables
+                    select [nombre columna1],[nombre columna2]
+                    into [nombre variable1],[nombre variable2]
+                    from [nombre tabla] where [condicion];
+
+                Ejemplo basico
+
+                do $$ 
+                    declare
+                        v_numero1 int;
+                        v_numero2 int;
+                        v_suma int;
+                        v_resta int;
+                        v_multiplicacion int;
+                    begin
+                        v_numero1:=12;
+                        v_numero2:=5;
+                        v_suma:= v_numero1 + v_numero2;
+                        v_resta:= v_numero1 - v_numero2;
+                        v_multiplicacion:= v_numero1 * v_numero2;
+
+                        raise notice 'la suma es %',v_suma;
+                        raise notice 'la suma es %',v_resta;
+                        raise notice 'la suma es %',v_multiplicacion;
+                    end;
+                $$
+
+                Output
+
+                NOTICE:  la suma es 17
+                NOTICE:  la suma es 7
+                NOTICE:  la suma es 60
+                DO
+
+                Ejemplo variable record
+
+                    do $$
+                    declare
+                        v_registro record;
+                    begin
+                        select * into v_registro
+                        from [tabla]
+                        where [condicion];
+
+                        raise notice 'el nombre del cliente es % y su direccion es %',
+                        v_registro.[nombre columna], v_registro.[nombre columna];
+                    end;
+                $$
+
+                NOTICE:  el nombre del cliente es [nombre cliente] y su direccion es [direccion cliente]
+                DO
+            </p>
+            <h3>Condicionales</h3>
+            <p>
+                If
+                    if (condicion ) then 
+                        {accion a realizar}      
+                    else 
+                        {accion a realizar}     
+                    end if;
+
+
+                if anidado
+                    if (condicion ) then 
+                        {accion a realizar}   
+                    elseif (condicion ) then 
+                        {accion a realizar}   
+                    else 
+                        {accion a realizar}   
+                    end if;
+
+                case when
+
+                    case when condicion then
+                        {accion a realizar}
+                    when condicion then
+                        {accion a realizar}
+                    else 
+                        {accion a realizar}
+                end case;
+            </p>
+            <h3>bucles</h3>
+            <p>
+                loop
+                    {}
+                    exit when [condicion]
+                end loop;
+
+
+                while [condicion] loop 
+                    {}
+                end loop;
+
+
+                for [variable] in select * from [nombre tabla] loop 
+                    {}
+                end loop;
+
+                for [variable] in select * from [nombre tabla] loop 
+                    raise notice 'El nombre del producto es %', [variable].[nombre columna];
+                end loop;
+
+                *siempre hay que declarar la variable 
+
+                cursor
+            </p>
+            <h3>Funciones</h3>
+            <p>
+                --crearla
+                    create function [nombre funcion]()
+                    returns [tipo de variable]
+                    as
+                    $$
+                    declarate[variable a declarar]
+                    begin
+                        {}
+                    end
+                    $$
+                    language plpgsql
+
+                --usaral
+                    select [nombre funcion]();
+
+                   --remplazar una funcion
+                    create or remplace function [nombre funcion]()
+                    returns [tipo de variable]
+                    as
+                    $$
+                    begin
+                        {}
+                    end
+                    $$
+                    language plpgsql
+            </p>
+            <h3>Backup</h3>
+            <p>
+                En el cmd de la ruta bin de posgres
+
+                pg_dump.exe -u [nombre usuario] [nombre base de datos] > [ruta]
+
+                pg_dump.exe -u [nombre usuario] -Fc [nombre base de datos] > [ruta]
+                    *en la ruta se pone el archivo no como .sql sino cmo .dump
+
+                pg_dump.exe -u [nombre usuario] -Ft [nombre base de datos] > [ruta]
+                    *en la ruta se pone el archivo no como .sql sino cmo .tar
+
+                -solo hacer backup de una tabla
+                    pg_dump.exe -u [nombre usuario] -t [nombre tabla] [nombre base de datos] > [ruta]
+
+                -hacer backup de todas las tablas iniciadas con una letrea
+                    pg_dump.exe -u [nombre usuario] -t [nombre esquema].[letra]* [nombre base de datos] > [ruta]
+
+                -hacer backup de todas las tablas iniciadas con una letra menos una tabla
+                    pg_dump.exe -u [nombre usuario] -t [nombre esquema].[letra]* -T [nombre tabla que no queremos hacer backup] [nombre base de datos] > [ruta]
+
+                traer solo la data
+                    pg_dump.exe -u [nombre usuario] -a --data-only [nombre base de datos] > [ruta]
+
+                solo el esquema	
+                    pg_dump.exe -u [nombre usuario] --schema=[nombre esquema] [nombre base de datos] > [ruta]
+
+                no traer un esquema
+                    pg_dump.exe -u [nombre usuario] --exclude-schema=[nombre esquema] [nombre base de datos] > [ruta]
+
+                solo traer lo esquemas
+                    pg_dump.exe -u [nombre usuario] --schema-only [nombre base de datos] > [ruta]
+
+                haacer backup sin el propietario
+                    pg_dump.exe -u [nombre usuario] --no-owner=[nombre usuario] [nombre base de datos] > [ruta]
+
+                --Todas las bases de datos
+                    pg_dumpall.exe -u [nombre superusuario] -f > [ruta]
+
+                Toda la data de todas las DB	
+                    pg_dumpall.exe -u [nombre superusuario] -a > [ruta]
+
+                Todos los objetos globales de las DB	
+                    pg_dumpall.exe -u [nombre superusuario] -g > [ruta]
+
+                Todos los roles de las DB	
+                    pg_dumpall.exe -u [nombre superusuario] -r > [ruta]
+
+                Todos los esquemas de las DB	
+                    pg_dumpall.exe -u [nombre superusuario] -s > [ruta]
+            </p>
+            <h3>Restaurar DB</h3>
+            <p>
+                En el cmd de la ruta bin de posgres
+
+                Nos conectamos 
+                    psql.exe -u postgres
+                
+                creamos la base de datos de restauracion
+                    create database [nombre base datos res]
+                
+                salimos de psql.exe
+                    \q	
+                
+                restauramos la db
+                    psql.exe -u postgres [nombre base datos res] < [ruta backup db]
+                
+                restaurar archivos .dump o taz
+                    pg_restore.exe -u postgres -d [nombre base datos res] -v [ruta backup db]
+                
+                restaurar una tabla
+                    pg_restore.exe --table=[nombre tabla] -u postgres -d [nombre base datos res] -v [ruta backup db]
+                
+                restaurar solo los esquemas
+                    pg_restore.exe --schema-only -u postgres -d [nombre base datos res] -v [ruta backup db]                
+            </p>
+        </div>
+    
+    </div>
+    <div name="piepag">
+
+    </div>
+
+  
+
+   <a href="./index.html">home</a>
+</body>
+</html>
